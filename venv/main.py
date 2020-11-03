@@ -4,13 +4,17 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 
+n = 4
+maxprobes = 100
+
 def dataLoad():
 	#path = "C:/Users/benoît/Documents/IMT Lille Douai/M1/ODATA/Projet/ODATA_project_authentication_data/data/dataset1"
 	path = "D:/louis/Documents/Institut Mines-Télécom Lille-Douai 2017-2023/4-M1 - 2020-2021/Modules/P2 - ODATA - Outils pour la Data Science/Projet Authentification faciale/data/dataset1/images"
 
 	gallery = []
 	probes = []
-	names = []
+	probes1 = []
+	probes2 = []
 
 	iteration = 0
 	compteur = 0
@@ -28,14 +32,25 @@ def dataLoad():
 				name, version = os.path.splitext(nameVersion)
 
 				if name == currentName:
+
+					#print(name)
+					#print(compteur)
+
+					if compteur <= n:
+						current_image_path = os.path.join(current_directory_path, f)
+						current_image = mpimg.imread(current_image_path)
+						probes1.append(current_image)
+					else:
+						current_image_path = os.path.join(current_directory_path, f)
+						current_image = mpimg.imread(current_image_path)
+						gallery.append(current_image)
+
 					compteur += 1
-					print(name)
-					print(compteur)
+
+
 				else:
 					currentName = name
 					compteur = 1
-					print(name)
-					print(compteur)
 				iteration += 1
 
 				"""	
@@ -46,8 +61,17 @@ def dataLoad():
 				"""
 
 
-
 	print('100%\n',end='')
+	print(len(probes1))
+	iter = 0
+	for image in probes1:
+		iter += 1
+		plt.figure()
+		plt.axis("off")
+		plt.imshow(image)
+		plt.show()
+		if iter == 5:
+			break
 
 
 	"""
