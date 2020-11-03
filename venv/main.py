@@ -12,7 +12,7 @@ def dataLoad():
 	probes = []
 	names = []
 
-	iteration = 1
+	iteration = 0
 	compteur = 0
 	currentName = ''
 
@@ -24,17 +24,18 @@ def dataLoad():
 		for f in files:
 
 			nameVersion, ext = os.path.splitext(f)
-			print(nameVersion,ext)
 			if ext == ".jpg":
 				name, version = os.path.splitext(nameVersion)
-				names.append(name)
-				print(names)
-				if name[iteration] == currentName:
+
+				if name == currentName:
 					compteur += 1
+					print(name)
 					print(compteur)
 				else:
-					currentName = name[iteration]
+					currentName = name
 					compteur = 1
+					print(name)
+					print(compteur)
 				iteration += 1
 
 				"""	
