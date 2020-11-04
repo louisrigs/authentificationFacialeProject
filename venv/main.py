@@ -7,13 +7,12 @@ import img
 
 n = 2
 maxprobes = 100
+
 gallery = []
 probes = []
+groundtruth = []
 probes1 = []
 probes2 = []
-probesname = []
-probes1name = []
-probes2name = []
 
 def dataLoad():
 	# path = "C:/Users/benoît/Documents/IMT Lille Douai/M1/ODATA/Projet/ODATA_project_authentication_data/data/dataset1"
@@ -26,7 +25,6 @@ def dataLoad():
 
 	for root, _, files in os.walk(path):
 		current_directory_path = os.path.abspath(root)
-
 		for f in files:
 			nameVersion, ext = os.path.splitext(f)
 			if ext == ".jpg":
@@ -36,36 +34,37 @@ def dataLoad():
 				images = img.image(name, version, current_image)
 
 				if len(probes2) < maxprobes:
-					probes2.append(images)
-					probes2name.append(nameVersion)
+					probes2.append(current_image)
+					groundtruth.append(images)
 				else:
 					if len(probes1) < maxprobes:
 						if name == currentName:
 							if compteur < n:
-								probes1.append(images)
-								probes1name.append(nameVersion)
+								probes1.append(current_image)
+								groundtruth.append(images)
 								compteur += 1
 							else:
-								gallery.append(images)
+								gallery.append(current_image)
+								groundtruth.append(images)
 						else:
 							compteur = 1
-							probes1.append(images)
-							probes1name.append(nameVersion)
+							probes1.append(current_image)
+							groundtruth.append(images)
 							currentName = name
 					else:
-						gallery.append(images)
+						gallery.append(current_image)
+						groundtruth.append(images)
 
 	probes = probes1+probes2
-	probesname = probes1name + probes2name
 	print(len(probes))
-
-
+	print(len(gallery))
+	print(len(groundtruth))
 	iter = 0
 	for imagesss in probes:
 		if iter <= 10:
 			plt.figure()
 			plt.axis("off")
-			plt.imshow(imagesss.mat)
+			plt.imshow(imagesss)
 			plt.show()
 		iter += 1
 
