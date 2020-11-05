@@ -1,5 +1,8 @@
 class image:
-	def __init__(self, name, version, mat ):
+	def __init__(self, name, version, matrix ):
 		self.name = name
 		self.version = version
-		self.mat = mat
+		self.matrix = matrix
+		self.hauteur = len(matrix)
+		self.largeur = len(matrix[0])
+		self.vecteur

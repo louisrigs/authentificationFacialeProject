@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import img
 
+c = 3
 n = 2
 maxprobes = 100
 
@@ -30,6 +31,7 @@ def dataLoad():
 			if ext == ".jpg":
 				current_image_path = os.path.join(current_directory_path, f)
 				current_image = mpimg.imread(current_image_path)
+
 				name, version = os.path.splitext(nameVersion)
 				images = img.image(name, version, current_image)
 
