@@ -3,35 +3,32 @@ import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import numpy as np
 from sklearn.decomposition import PCA
-from authentification import auth
-
+from sklearn.preprocessing import StandardScaler
 
 load.dataLoad()
-"""
-imageeee = mpimg.imread("D:/louis/Documents/Institut Mines-Télécom Lille-Douai 2017-2023/4-M1 - 2020-2021/Modules/P2 - ODATA - Outils pour la Data Science/Projet Authentification faciale/data/dataset1/images/9326871.1.jpg")
-imgY = imageeee - np.mean(imageeee,axis=0)
-covImg = np.cov(imgY, rowvar=0)
-valp, vecp = np.linalg.eig(covImg)
 
-pca = PCA(n_components=150)
-pca.fit(imgY)
-valp2 = pca.explained_variance_
-vecp2 = pca.components_
-"""
-"""
+gallery = []
+probes = []
+groundTruth = []
+vecPropres = []
 
-plt.figure()
-plt.title("Probes")
-plt.axis("off")
-plt.imshow(load.probes1[index])
-plt.show()
+gallery = load.gallery
+probes = load.probes1 + load.probes2
+groundTruth = load.groundtruth
 
+scaler = StandardScaler()
+scaler.fit(gallery[0])
+Z = scaler.transform(gallery[0])
+Z_moy = np.mean(Z)  #proche de 0
+Z_var = np.var(Z)   #proche de 1 (valeur centrée réduite)
+print('\n Moyenne de Z :', Z_moy, '\n Variance de Z :', Z_var)
 
-for l in voisins_proches:
-	plt.figure()
-	plt.title("groundtruth ")
-	plt.axis("off")
-	plt.imshow(load.gallery[l])
-	plt.show()
+X_moy = np.mean(groundTruth[0],axis=0)
+matY = groundTruth - X_moy
 
-print("affichage des voisins complété")"""
+pca = PCA()
+pca.fit(Z)
+vecPropres = pca.components_ # chaque ligne est un vecteur propre
+valPropres = pca.explained_variance_ #valeurs propres par ordre décroissant
+partInertie = pca.explained_variance_ratio_
+partInertieCumul = np.cumsum(pca.explained_variance_ratio_)
