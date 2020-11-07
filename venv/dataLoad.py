@@ -51,7 +51,10 @@ def dataLoad():
 						gallery.append(current_image)
 						groundtruth.append(current_image)
 
-	probes = probes1 + probes2
+	for l in probes1:
+		probes.append(l)
+	for l in probes2:
+		probes.append(l)
 
 	print("Taille de gallery : ", len(gallery), "\nTaille de probes : ", len(probes), "\nTaille de groundtruth : ", len(groundtruth))
 	print("Chargement des images: complété")

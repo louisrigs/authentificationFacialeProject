@@ -4,46 +4,64 @@ import matplotlib.pyplot as plt
 import dataLoad as load
 import numpy as np
 
-def eigenFaces():
-	### changer probes1 par gallery
-	galV = np.array([l.flatten() for l in load.gallery])             #linéarisation des images en vecteurs
+nbrAxes = 3
+composantes = []
+compMat = []
 
-	print("Enclenchement du scaler...")
-	scaler = StandardScaler()
-	scaler.fit(galV)
-	galVZ = scaler.transform(galV)      # données centrées réduites
+def eigenFaces(image, dataset):
+	galV = np.array([l.flatten() for l in dataset])             #linéarisation des images en vecteurs
+	galVY = galV - np.mean(galV, axis=0)
+
+	imgV = image.flatten()
+	imgVy = imgV - np.mean(imgV, axis=0)
+	imgComp = []
 
 	print("Enclenchement du PCA...", end='')
 	pca = PCA()
-	pca.fit(galVZ)              # ACP sur les données centrées réduites
+	pca.fit(galVY)              # ACP sur les données centrées réduites
 	print("complété")
 	print("Création des vecteurs propres de l'ACP")
-	vecPropres = pca.components_ # chaque ligne est un vecteur propre
-	valPropres = pca.explained_variance_ #valeurs propres par ordre décroissant
-	partInertie = pca.explained_variance_ratio_ # part d'inertie par chaque axe
-	partInertieCumul = np.cumsum(pca.explained_variance_ratio_) # part d'inertie cumulée
+	eigenFaces = pca.components_ # chaque ligne est un vecteur propre
+	eigFacValP = pca.explained_variance_ #valeurs propres par ordre décroissant
 
-	v1 = vecPropres[0]
-	v2 = vecPropres[1]
-	normalV1 = np.linalg.norm(v1)
-	normalV2 = np.linalg.norm(v2)
+	for i in range(0,nbrAxes):
+		eigFi = eigenFaces[i]
+		normPi = np.linalg.norm(eigFi)
+		if normPi != 0:
+			eigFNi = eigFi/normPi
+			comp_i = np.dot(galVY,eigFNi.T)
+			composantes.append(comp_i)
+			imgComp.append(np.dot(imgVy, eigFNi.T))
+		else:
+			comp_i = np.dot(galVY,eigFi.T)
+			composantes.append(comp_i)
+			imgComp.append(np.dot(imgVy, eigFi.T))
+		print("Moyenne composante ",i+1,' :', np.mean(comp_i))
+		print("Variance composante ",i+1,' :', np.var(comp_i))
 
-	if normalV1 != 0:
-		V1 = vecPropres[0] / normalV1
-		V2 = vecPropres[1] / normalV2
+	compMat = np.matrix(composantes[0].T)
+	"""for i in range(1,len(composantes)):
+		aconcat = np.matrix(np.matrix(composantes[i].T))
+		matcomp = compMat
+		compMat = np.hstack(matcomp,aconcat)"""
 
-	c1 = np.dot(galVZ, v1.T)
-	c2 = np.dot(galVZ, v2.T)
+	return eigFacValP,eigenFaces,compMat,imgComp
 
-	print(np.mean(c1), np.mean(c2))
-	print(np.var(c1), np.var(c2))
 
-	plt.figure()
+"""print("Enclenchement du scaler...")
+	scaler = StandardScaler()
+	scaler.fit(galV)
+	galVZ = scaler.transform(galV)  """    # données centrées réduites
+
+"""
+
+partInertie = pca.explained_variance_ratio_ # part d'inertie par chaque axe
+partInertieCumul = np.cumsum(pca.explained_variance_ratio_) # part d'inertie cumulée"""
+
+"""plt.figure()
 	plt.title("Carte des individus")
-	plt.xlim(c1.min(), c1.max())
-	plt.ylim(c2.min(), c2.max())
+	plt.xlim(c1.min()-5, c1.max()+5)
+	plt.ylim(c2.min()-5, c2.max()+5)
 	plt.axis("on")
 	plt.scatter(c1, c2, s=10, c='red', marker='+')
-	plt.show()
-
-	return valPropres,vecPropres,c1,c2
+	plt.show()"""

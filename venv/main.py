@@ -2,20 +2,15 @@ import dataLoad as load
 import matplotlib.pyplot as plt
 import matplotlib.axes as plot
 import matplotlib.image as mpimg
+import authentification
 import numpy as np
 import eigenFaces
 
 load.dataLoad()
 
+gallery = load.gallery
+probes = load.probes
+groundTruth = load.groundtruth
 
-gallery = []
-probes = []
-groundTruth = []
-valPropres, vecPropres, comp1, comp2 = eigenFaces.eigenFaces()
+authentification.eigenAuth(probes[1],probes)
 
-
-"""gallery = load.gallery"""
-probes1 = load.probes1
-"""
-probes2 = load.probes2
-groundTruth = load.groundtruth"""
