@@ -1,98 +1,171 @@
 import dataLoad as load
 import authentification as auth
 import numpy as np
+import time
 
-load.dataLoad(2)
+load.dataLoad(3)
+
 gallery = load.gallery
 probes = load.probes
 groundTruth = load.groundtruth
 
-def casSuccErr(radius):
-	bfCas1 = []
-	bfCas2 = []
-	bfCas3 = []
-	bfCas4 = []
-	for i in range (0,100):
-		bfCas1.append(auth.bfAuth(probes[i], gallery, radius))
-		bfCas2.append(auth.bfAuth(probes[i+100], gallery, radius))
-	return bfCas1,bfCas2
+"""
+:param :    image:      matrice de l'image
 
-#cas1, cas2 = casSuccErr(1300000)
-#print(cas1,"\n", cas2)
+:objectifs: renvoie l'identité de l'image et vérifier l'utilisateur est
+			enregistré dans la gallery
 
+:returns:   indivEnregistre :   booleen pour savoir s'il est dans la gallery
+			identity:           nom de l'individu
+			index:              index des autres images de l'utilisateur dans groundtruth
+			
+"""
 def evaluate(image):
 	identity = ''
-	autres = []
-	autresMat = []
-	i = 0
-	enregistre = False
+	index = []
+
+	indivEnregistre = False
+
 	for l in groundTruth:
-		i += 1
 		comparaison = l.matrix == image
 		if comparaison.all():
 			identity = l.name
-			enregistre = True
-			print(identity)
 			break
-
-	if enregistre == True:
+	i = 0
+	if identity != '':
 		for l in groundTruth:
 			if identity == l.name:
-				autresNom.append(identity + l.version)
-				autresMat.append(l.matrix)
-
-	print("Identité de l'individu:")
-	print(autresNom)
-
-	return inData,identity,autresNom,autresMat
-
-#enregistre, identite, autresNom, autresMat, = evaluate(gallery[600])
+				index.append(i)
+				if l.savedGal == True:
+					indivEnregistre = True
+			i += 1
+	return indivEnregistre, identity, index
 
 # TP - Vrai positif : cas 1 : autorise à un utilisateur justement enregistré
 # FP - Faux positif : cas 2 : autorise à utilisateur enregistré, mais par mauvaise reconaissance
 # FP - Faux positif : cas 3 : autorise à utilisateur non-enregistré, mais par reconaissance proche
 # TN - Vrai négatif : cas 4 : refuse à un utilisateur non-enregistré
 # FN - Faux négatif : cas 5 : refuse à un utilisateur justement enregistré
-#
-def evalMesure(image,dataset,radius):
-	enregistre, identite,autres,autresMat = evaluate(image)
-	voisinsProches = auth.bfs.radius_search(dataset,image,radius)[0]
-	authentifie = auth.bfAuth(image,dataset,radius)
-	TP, FP, TN, FN = 0
+"""
+:param :    image:      matrice de l'image
+			dataset:    liste de matrices d'images
+			radius:     distance minimum pour les voisins proches
+			
+:objectifs: Cette fonction a pour objectif d'analyser l'image et en déduire dans quel cas
+			l'image se situe. Pour l'analyse, la fonction va comparer les matrices d'images de ground-truth
+			et des voisins proches
 
-	image_reconnue = False
-	for i in range(0, len(voisinsProches)):
-		for j in range(0, len(autresMat)):
-			if dataset[voisinsProches[i]] != autresMat[j]:
-				continue
-			else:
-				image_reconue = True
-				break
+:returns:   array([TP, FP, FN, TN]) : renvoie les mesures d'évaluation de l'image par rapport aux différents cas
+
+"""
+def eMesure(image, dataset, radius):
+	indivEnregistre, identite, index = evaluate(image)
+	voisinsProches = auth.bfs.radius_search(dataset, image, radius)[0]
+	authentifie = auth.bfAuth(image, dataset, radius)
+
+	TP = 0
+	FP = 0
+	FN = 0
+	TN = 0
+
+	voisinsValides = []
+
+	if indivEnregistre == True:
+		for i in range(0, len(voisinsProches)):
+			for j in range(0, len(index)):
+				comparaison = dataset[voisinsProches[i]] == groundTruth[index[j]].matrix
+				if comparaison.all():
+					voisinsValides.append(voisinsProches[i])
+					break
+				else:
+					continue
+
+		if len(voisinsProches) == len(voisinsValides):
+			image_reconnue = True
+		else:
+			image_reconnue = False
 
 	if authentifie == True:
-		if enregistre == True:
-			if image_reconnue == True:  # cas 1
+		if indivEnregistre == True:
+			if image_reconnue == True:  # cas 1:    True Positive
 				TP = 1
-			else:   # cas 2
+			else:                       # cas 2:    False Positive2
 				FP = 1
-		else:
+		else:                           # cas 3:    False Positive3
 			FP = 1
 	else:
-		if enregistre == True:
+		if indivEnregistre == True:     # cas 5:    False Negative
 			FN = 1
-		else:
+		else:                           # cas 4:    True Negative
 			TN = 1
-	return [TP,FP,FN,TN]
+	return np.array([TP, FP, FN, TN])
 
-def exactitude(TP,FP,FN,TN):
-	return (TP+TN)/(TP+FP+FN+TN)
 
-def precision(TP,FP,FN,TN):
-	return TP/(TP+FP)
+"""
+:param :    TP: True Positive
+			FP: False Positive
+			FN: False Negative
+			TN: True Negative
+			
+:objectifs: Cette fonction a pour objectif d'évaluer nos mesures en fonction des paramètres
 
-def sensi(TP,FP,FN,TN):
-	return TP/(TP+FN)
+:returns:   exactitude:
+			precision:  
+			sensibilite:
+			specificite:
 
-def specif(TP,FP,FN,TN):
-	return TN/(FP+TN)
+"""
+def evaluationMes(TP,FP,FN,TN):
+	exNum = TP+TN
+	exDen = TP + FP + FN + TN
+	if exDen != 0:
+		exactitude = exNum/exDen
+	else:
+		exactitude = 0
 
+	preDen = TP + FP
+	if preDen != 0:
+		precision = TP / preDen
+	else:
+		precision = 0
+
+	senDen = TP + FN
+	if senDen != 0:
+		sensibilite = TP / senDen
+	else:
+		sensibilite = 0
+
+	speDen = FP + TN
+	if speDen != 0:
+		specificite = TN / speDen
+	else:
+		specificite = 0
+
+	return exactitude, precision, sensibilite, specificite
+
+
+def casSuccErr(radius):
+	bfCasP1 = np.zeros(4)
+
+	print("Calcul des Mesures en cours...")
+	for i in range(0, 100):
+		bfCasP1 += eMesure(probes[i], gallery, radius)
+		bfCasP1 += eMesure(probes[i+100], gallery, radius)
+
+	excatP1,precisP1,sensiP1,specifP1 = evaluationMes(bfCasP1[0],bfCasP1[1],bfCasP1[2],bfCasP1[3])
+	print("Evaluation pour un brute force search pour Probes avec radius = ", radius)
+	print("Exactitudes : \tP1 ", excatP1)
+	print("Precision : \tP1 ", precisP1)
+	print("Sensibilite : \tP1 ", sensiP1)
+	print("Specification :\tP1 ", specifP1)
+
+	return bfCasP1
+
+start_time = time.time()
+bf1G = casSuccErr(1000000)
+interval = time.time() - start_time
+print 'Total time in seconds:', interval
+bf1H = casSuccErr(1700000)
+bf1I = casSuccErr(1800000)
+bf1J = casSuccErr(1900000)
+bf1K = casSuccErr(2000000)
