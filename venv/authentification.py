@@ -1,20 +1,23 @@
 import brute_force_search as bfs
 import eigenFaces as eigF
 
-radius = 2000000
-def bfAuth(image, dataset):
+def bfAuth(image,dataset,radius):
 	voisins_proche = bfs.radius_search(dataset, image, radius)[0]
+
+	#print("Nbr voisins: ", len(voisins_proche), "\tvoisins :", voisins_proche, "\tradius :", radius)
+
 	if len(voisins_proche) > 0 :
 		return True
 	else:
 		return False
 
+def eigenAuth(image,dataset,radius):
+	compList, imgMatComp = eigF.eigenFaces(image, dataset,2)
+	voisins_proche = bfs.radius_search(compList,imgMatComp,radius)[0]
 
-def eigenAuth(image,dataset):
+	#print("Nbr voisins: ", len(voisins_proche), "\tvoisins :", voisins_proche, "\tradius :", radius)
 
-	eigFacValP,eigenFaces,composantes,imgComp = eigF.eigenFaces(image,dataset)
-	print(composantes)
-	print(imgComp)
-"""
-	bfs.radius_search(composantes,image,radius)[0]
-"""
+	if len(voisins_proche) > 0:
+		return True
+	else:
+		return False

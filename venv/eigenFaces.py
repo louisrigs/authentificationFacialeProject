@@ -4,26 +4,43 @@ import matplotlib.pyplot as plt
 import dataLoad as load
 import numpy as np
 
-nbrAxes = 3
 composantes = []
-compMat = []
+compList = []
 
-def eigenFaces(image, dataset):
+def eigenFaces(image, dataset, nbrAxes):
 	galV = np.array([l.flatten() for l in dataset])             #linéarisation des images en vecteurs
 	galVY = galV - np.mean(galV, axis=0)
 
-	imgV = image.flatten()
-	imgVy = imgV - np.mean(imgV, axis=0)
+	imgV = np.array(image.flatten())
+	imgVy = imgV - np.mean(galV, axis=0)
 	imgComp = []
 
 	print("Enclenchement du PCA...", end='')
-	pca = PCA()
-	pca.fit(galVY)              # ACP sur les données centrées réduites
-	print("complété")
-	print("Création des vecteurs propres de l'ACP")
-	eigenFaces = pca.components_ # chaque ligne est un vecteur propre
-	eigFacValP = pca.explained_variance_ #valeurs propres par ordre décroissant
+	covDT = np.cov(galVY)
+	print("Covariance créee...")
+	eigFacValPrp, eigenFacVecPro = np.linalg.eigh(covDT)  # ACP sur les données centrées réduites
+	eigenPrincip = []
+	for i in range(0,len(eigenFacVecPro)):
+		vecPrincip = np.dot(galVY.T, eigenFacVecPro[i])
+		eigenPrincip.append(vecPrincip)
+	print("Vecteurs crées")
 
+	for l in eigenPrincip:
+		norm = np.linalg.norm(l)
+		if norm !=0:
+			l = l/norm
+
+	print("Vecteurs normalisés")
+	"""
+	print("Enclenchement du PCA...", end='')
+	pca = PCA()
+	pca.fit(galVY)
+	eigenFaces = pca.components_  # chaque ligne est un vecteur propre
+	eigFacValP = pca.explained_variance_  # valeurs propres par ordre décroissant
+	print("complété")
+	"""
+
+	"""
 	for i in range(0,nbrAxes):
 		eigFi = eigenFaces[i]
 		normPi = np.linalg.norm(eigFi)
@@ -36,27 +53,22 @@ def eigenFaces(image, dataset):
 			comp_i = np.dot(galVY,eigFi.T)
 			composantes.append(comp_i)
 			imgComp.append(np.dot(imgVy, eigFi.T))
-		print("Moyenne composante ",i+1,' :', np.mean(comp_i))
-		print("Variance composante ",i+1,' :', np.var(comp_i))
 
-	compMat = np.matrix(composantes[0].T)
-	"""for i in range(1,len(composantes)):
-		aconcat = np.matrix(np.matrix(composantes[i].T))
-		matcomp = compMat
-		compMat = np.hstack(matcomp,aconcat)"""
+	imgMatComp = imgComp
+	galMatcomp = np.array([np.array(xi) for xi in composantes],dtype="object")
 
-	return eigFacValP,eigenFaces,compMat,imgComp
+	longueur = len(galMatcomp[0])
 
+	for i in range(0,longueur):
+		mat = np.zeros((nbrAxes))
+		for j in range(0,nbrAxes):
+			mat[j] = galMatcomp[j][i]
+		compList.append(mat)
+	"""
 
-"""print("Enclenchement du scaler...")
-	scaler = StandardScaler()
-	scaler.fit(galV)
-	galVZ = scaler.transform(galV)  """    # données centrées réduites
+	return eigenPrincip,imgVy
+	#return compList,imgMatComp
 
-"""
-
-partInertie = pca.explained_variance_ratio_ # part d'inertie par chaque axe
-partInertieCumul = np.cumsum(pca.explained_variance_ratio_) # part d'inertie cumulée"""
 
 """plt.figure()
 	plt.title("Carte des individus")
